@@ -472,7 +472,7 @@ void Sim_Client_API::process_SimpleAtsMsg(Task task)
 	}
 	data["AllOptions"] = opt;
 
-	this->onRtn_ExecMsg(data);
+	this->onRtn_SimpleAtsMsg(data);
 
 }
 
