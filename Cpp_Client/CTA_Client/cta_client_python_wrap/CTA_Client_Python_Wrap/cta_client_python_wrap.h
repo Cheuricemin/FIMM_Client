@@ -77,7 +77,7 @@ template<typename Data>
 class ConcurrentQueue
 {
 private:
-	queue<Data> the_queue;								//标准库队列
+	std::queue<Data> the_queue;								//标准库队列
 	mutable boost::mutex the_mutex;							//boost互斥锁
 	boost::condition_variable the_condition_variable;			//boost条件变量
 
@@ -112,6 +112,7 @@ public:
 
 		Data popped_value = the_queue.front();			//获取队列中的最后一个任务
 		the_queue.pop();								//删除该任务
+		//cout << "size of queue:" << the_queue.size() << endl;
 		return popped_value;							//返回该任务
 	}
 

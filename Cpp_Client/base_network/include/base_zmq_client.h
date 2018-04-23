@@ -34,7 +34,7 @@ public:
 	int gzcompress(Bytef *data, uLong ndata, Bytef *zdata, uLong *nzdata);
 	
 	std::string last_msg_type;
-	std::map<std::string, AtsGeneral::FeedSourceMsg> m_FeedSource;
+	std::map<std::string, AtsGeneral::FeedSourceMsg> m_FeedSourceMsg;
 	std::map<std::string, AtsGeneral::ConnectionMsg> m_ConnectionMsg;
 	std::list<AtsGeneral::LogMsg> m_LogMsg;
 	std::list<AtsGeneral::OrderMsg> m_OrderMsg;

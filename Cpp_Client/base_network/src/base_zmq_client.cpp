@@ -131,7 +131,7 @@ void base_zmq_client::rcv()
 				memcpy((void *)last_msg_type.data(), zmq_msg_data(&reply), size);
 				last_msg_type[size] = '\0';
 
-				std::cout << last_msg_type << std::endl;
+				//std::cout << last_msg_type << std::endl;
 			}
 			else
 			{
@@ -171,7 +171,7 @@ void base_zmq_client::process_thrift_msgc(char *strr, uLong outlen)
 		msg.read(compact_proto.get());
 
 		std::lock_guard<std::mutex> lock(m_mutex);
-		m_FeedSource[msg.Name] =msg ;
+		m_FeedSourceMsg[msg.Name] =msg ;
 
 	}
 	else if (strcmp(last_msg_type.data(), "Connection") == 0)

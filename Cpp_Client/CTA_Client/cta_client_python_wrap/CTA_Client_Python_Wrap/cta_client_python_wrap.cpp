@@ -100,11 +100,11 @@ void getChar(dict d, string key, char *value)
 void CTA_Client_API::get_packet_from_cpp_lib()
 {
 
-	std::list<CTAMsg::CTAAtsMsg> m_SimpleAtsMsg;
+	std::list<CTAMsg::CTAAtsMsg> m_CTAAtsMsg;
 	std::list<AtsGeneral::LogMsg> m_LogMsg;
 	std::list<AtsGeneral::OrderMsg> m_OrderMsg;
 	std::list<AtsGeneral::ExecMsg> m_ExecMsg;
-	std::map<std::string, AtsGeneral::FeedSourceMsg> m_FeedSource;
+	std::map<std::string, AtsGeneral::FeedSourceMsg> m_FeedSourceMsg;
 	std::map<std::string, AtsGeneral::ConnectionMsg> m_ConnectionMsg;
 	auto zmq_cli = cta_client_manager::get_instance().get_zmq_client();
 
@@ -114,21 +114,22 @@ void CTA_Client_API::get_packet_from_cpp_lib()
 
 		{
 			std::lock_guard<std::mutex> lock(zmq_cli->m_mutex);
-			m_SimpleAtsMsg.swap(zmq_cli->m_CTAAtsMsg);
+			m_CTAAtsMsg.swap(zmq_cli->m_CTAAtsMsg);
 			m_LogMsg.swap(zmq_cli->m_LogMsg);
 			m_OrderMsg.swap(zmq_cli->m_OrderMsg);
 			m_ExecMsg.swap(zmq_cli->m_ExecMsg);
-			m_FeedSource.swap(zmq_cli->m_FeedSource);
+			m_FeedSourceMsg.swap(zmq_cli->m_FeedSourceMsg);
 			m_ConnectionMsg.swap(zmq_cli->m_ConnectionMsg);
 		}
 
-		for (auto it : m_SimpleAtsMsg)
+		for (auto it : m_CTAAtsMsg)
 		{
 			Task task = Task();
 			task.task_name = CTAATSMSG;
 			task.task_data = it;
 			this->task_queue.push(task);
 		}
+		m_CTAAtsMsg.clear();
 
 		for (auto it : m_LogMsg)
 		{
@@ -137,6 +138,7 @@ void CTA_Client_API::get_packet_from_cpp_lib()
 			task.task_data = it;
 			this->task_queue.push(task);
 		}
+		m_LogMsg.clear();
 
 		for (auto it : m_OrderMsg)
 		{
@@ -145,6 +147,7 @@ void CTA_Client_API::get_packet_from_cpp_lib()
 			task.task_data = it;
 			this->task_queue.push(task);
 		}
+		m_OrderMsg.clear();
 
 		for (auto it : m_ExecMsg)
 		{
@@ -153,14 +156,16 @@ void CTA_Client_API::get_packet_from_cpp_lib()
 			task.task_data = it;
 			this->task_queue.push(task);
 		}
+		m_ExecMsg.clear();
 
-		for (auto it : m_FeedSource)
+		for (auto it : m_FeedSourceMsg)
 		{
 			Task task = Task();
 			task.task_name = FEEDSOURCEMSG;
 			task.task_data = it.second;
 			this->task_queue.push(task);
 		}
+		m_FeedSourceMsg.clear();
 
 		for (auto it : m_ConnectionMsg)
 		{
@@ -169,6 +174,7 @@ void CTA_Client_API::get_packet_from_cpp_lib()
 			task.task_data = it.second;
 			this->task_queue.push(task);
 		}
+		m_ConnectionMsg.clear();
 	}
 }
 
@@ -326,12 +332,12 @@ void CTA_Client_API::process_ExecMsg(Task task)
 	this->onRtn_ExecMsg(data);
 }
 
-void create_AtsMsg(CTAMsg::CTAAtsMsg &task_data, dict &data)
+void create_CTAAtsMsg(CTAMsg::CTAAtsMsg &task_data, dict &data)
 {
 	dict ats;
 	ats["Name"] = task_data.Ats.Name;
 	ats["AutoStatus"] = task_data.Ats.AutoStatus;
-	ats["YesterdayPositionType"] = task_data.Ats.YesterdayPositionType;
+	ats["YesterdayPositionType"] = (int)(task_data.Ats.YesterdayPositionType);
 	ats["YesterdayPnlBary"] = task_data.Ats.YesterdayPnlBary;
 	ats["TodayPnlBary"] = task_data.Ats.TodayPnlBary;
 	ats["YesterdayPnlMid"] = task_data.Ats.YesterdayPnlMid;
@@ -345,112 +351,165 @@ void create_AtsMsg(CTAMsg::CTAAtsMsg &task_data, dict &data)
 	data["Ats"] = ats;
 }
 
-//void create_TrdInstrumentMsg(CTAMsg::TrdInstrumentMsg &task_data, boost::python::list &data)
-//{
-//	dict trd;
-//	trd["AtsName"] = task_data.AtsName;
-//
-//	dict atsinstr;
-//	{
-//		atsinstr["Code"] = task_data.AtsInstrument.Code;
-//		atsinstr["ExchangeFees"] = task_data.AtsInstrument.ExchangeFees;
-//		atsinstr["BrokerFees"] = task_data.AtsInstrument.BrokerFees;
-//		atsinstr["YesterdayPnlBarycenter"] = task_data.AtsInstrument.YesterdayPnlBarycenter;
-//		atsinstr["TodayPnlBarycenter"] = task_data.AtsInstrument.TodayPnlBarycenter;
-//		atsinstr["SizeToSend"] = task_data.AtsInstrument.SizeToSend;
-//		atsinstr["InstrumentClassName"] = task_data.AtsInstrument.InstrumentClassName;
-//
-//		{
-//			dict positon;
-//			positon["Instrument"] = task_data.AtsInstrument.Position.Instrument;
-//			positon["Portfolio"] = task_data.AtsInstrument.Position.Portfolio;
-//			positon["YesterdayPosition"] = task_data.AtsInstrument.Position.YesterdayPosition;
-//			positon["TodayPosition"] = task_data.AtsInstrument.Position.TodayPosition;
-//			positon["TotalPosition"] = task_data.AtsInstrument.Position.TotalPosition;
-//
-//			positon["TodayBuyPosition"] = task_data.AtsInstrument.Position.TodayBuyPosition;
-//			positon["TodayBuyPrice"] = task_data.AtsInstrument.Position.TodayBuyPrice;
-//			positon["TodaySellPosition"] = task_data.AtsInstrument.Position.TodaySellPosition;
-//			positon["TodaySellPrice"] = task_data.AtsInstrument.Position.TodaySellPrice;
-//			positon["YesterdayPrice"] = task_data.AtsInstrument.Position.YesterdayPrice;
-//
-//			positon["YesterdayPriceLocal"] = task_data.AtsInstrument.Position.YesterdayPriceLocal;
-//			positon["YesterdayPriceExternal"] = task_data.AtsInstrument.Position.YesterdayPriceExternal;
-//			positon["YesterdayPositionLocal"] = task_data.AtsInstrument.Position.YesterdayPositionLocal;
-//			positon["YesterdayPositionManual"] = task_data.AtsInstrument.Position.YesterdayPositionManual;
-//			positon["YesterdayPositionExternal"] = task_data.AtsInstrument.Position.YesterdayPositionExternal;
-//
-//			positon["UseManualPosition"] = task_data.AtsInstrument.Position.UseManualPosition;
-//			positon["YstPositionType"] = task_data.AtsInstrument.Position.YstPositionType;
-//			positon["YstPriceType"] = task_data.AtsInstrument.Position.YstPriceType;
-//			positon["Connection"] = task_data.AtsInstrument.Position.Connection;
-//			positon["TodayPurPosition"] = task_data.AtsInstrument.Position.TodayPurPosition;
-//
-//			positon["TodayRedPosition"] = task_data.AtsInstrument.Position.TodayRedPosition;
-//
-//			atsinstr["Position"] = positon;
-//		}
-//
-//		{
-//			dict FeedItem;
-//			boost::python::list BidDepths, AskDepths, BidQtys, AskQtys;
-//			FeedItem["Code"] = task_data.AtsInstrument.FeedItem.Code;
-//			FeedItem["FeedSourceName"] = task_data.AtsInstrument.FeedItem.FeedSourceName;
-//			FeedItem["Bid"] = task_data.AtsInstrument.FeedItem.Bid;
-//			FeedItem["Ask"] = task_data.AtsInstrument.FeedItem.Ask;
-//			FeedItem["BidQuantity"] = task_data.AtsInstrument.FeedItem.BidQuantity;
-//
-//			FeedItem["AskQuantity"] = task_data.AtsInstrument.FeedItem.AskQuantity;
-//			FeedItem["Last"] = task_data.AtsInstrument.FeedItem.Last;
-//			FeedItem["LastQuantity"] = task_data.AtsInstrument.FeedItem.LastQuantity;
-//			FeedItem["LastOrClose"] = task_data.AtsInstrument.FeedItem.LastOrClose;
-//			FeedItem["Mid"] = task_data.AtsInstrument.FeedItem.Mid;
-//
-//			FeedItem["Close"] = task_data.AtsInstrument.FeedItem.Close;
-//			FeedItem["Settlement"] = task_data.AtsInstrument.FeedItem.Settlement;
-//			FeedItem["UpperLimit"] = task_data.AtsInstrument.FeedItem.UpperLimit;
-//			FeedItem["LowerLimit"] = task_data.AtsInstrument.FeedItem.LowerLimit;
-//			FeedItem["Perf"] = task_data.AtsInstrument.FeedItem.Perf;
-//
-//			FeedItem["DailyVolume"] = task_data.AtsInstrument.FeedItem.DailyVolume;
-//			FeedItem["isBiddAskActive"] = task_data.AtsInstrument.FeedItem.isBiddAskActive;
-//			FeedItem["isSuspended"] = task_data.AtsInstrument.FeedItem.isSuspended;
-//			FeedItem["MaxDepth"] = task_data.AtsInstrument.FeedItem.MaxDepth;
-//
-//			for (auto &it : task_data.AtsInstrument.FeedItem.AskDepths)
-//			{
-//				AskDepths.append(it);
-//			}
-//			for (auto &it : task_data.AtsInstrument.FeedItem.BidDepths)
-//			{
-//				BidDepths.append(it);
-//			}
-//			for (auto &it : task_data.AtsInstrument.FeedItem.AskQtys)
-//			{
-//				AskQtys.append(it);
-//			}
-//			for (auto &it : task_data.AtsInstrument.FeedItem.BidQtys)
-//			{
-//				BidQtys.append(it);
-//			}
-//
-//			FeedItem["AskDepths"] = AskDepths;
-//			FeedItem["BidDepths"] = BidDepths;
-//			FeedItem["AskQtys"] = AskQtys;
-//			FeedItem["BidQtys"] = BidQtys;
-//			atsinstr["FeedItem"] = FeedItem;
-//		}
-//	}
-//	trd["AtsInstrument"] = atsinstr;
-//
-//	data.append(trd);
-//}
+void create_AtsSpreadMsg(CTAMsg::CTAAtsMsg &task_data, dict &data)
+{
+	dict AtsSpread;
+	AtsSpread["Ats"] = task_data.AtsSpread.Ats;
+	AtsSpread["FairSpread"] = task_data.AtsSpread.FairSpread;
+	AtsSpread["PosShift"] = task_data.AtsSpread.PosShift;
+	AtsSpread["PosShift"] = task_data.AtsSpread.PosShift;
+	AtsSpread["Ratio"] = task_data.AtsSpread.Ratio;
+	AtsSpread["MinGainHit"] = task_data.AtsSpread.MinGainHit;
+	AtsSpread["MinGainCon"] = task_data.AtsSpread.MinGainCon;
+	AtsSpread["MinGainConExit"] = task_data.AtsSpread.MinGainConExit;
+	AtsSpread["MinInterval"] = task_data.AtsSpread.MinInterval;
+	AtsSpread["HitSize"] = task_data.AtsSpread.HitSize;
+	AtsSpread["ConSize"] = task_data.AtsSpread.ConSize;
+	AtsSpread["ConMinDiff"] = task_data.AtsSpread.ConMinDiff;
+	AtsSpread["ConMaxDistance"] = task_data.AtsSpread.ConMaxDistance;
+	AtsSpread["HitStatus"] = task_data.AtsSpread.HitStatus;
+	AtsSpread["ConStatus"] = task_data.AtsSpread.ConStatus;
+	AtsSpread["ConBuy"] = task_data.AtsSpread.ConBuy;
+	AtsSpread["ConSell"] = task_data.AtsSpread.ConSell;
+	AtsSpread["MaxWaitInterval"] = task_data.AtsSpread.MaxWaitInterval;
+	AtsSpread["SpreadPos"] = task_data.AtsSpread.SpreadPos;
+	AtsSpread["Future1Pos"] = task_data.AtsSpread.Future1Pos;
+	AtsSpread["Future2Pos"] = task_data.AtsSpread.Future2Pos;
+	AtsSpread["BidHit"] = task_data.AtsSpread.BidHit;
+	AtsSpread["AskHit"] = task_data.AtsSpread.AskHit;
+	AtsSpread["BidCon"] = task_data.AtsSpread.BidCon;
+	AtsSpread["AskCon"] = task_data.AtsSpread.AskCon;
+	AtsSpread["Fut1Code"] = task_data.AtsSpread.Fut1Code;
+	AtsSpread["Fut2Code"] = task_data.AtsSpread.Fut2Code;
+	AtsSpread["MaxNumOrders"] = task_data.AtsSpread.MaxNumOrders;
+	AtsSpread["MaxPos"] = task_data.AtsSpread.MaxPos;
+	AtsSpread["UseMarketOrder"] = task_data.AtsSpread.UseMarketOrder;
+	AtsSpread["PosConvex"] = task_data.AtsSpread.PosConvex;
+	AtsSpread["ConvergeRate"] = task_data.AtsSpread.ConvergeRate;
+	AtsSpread["LastKLineTime"] = task_data.AtsSpread.LastKLineTime;
+	AtsSpread["KInterval"] = task_data.AtsSpread.KInterval;
+	AtsSpread["IgnoreUpDnLimit"] = task_data.AtsSpread.IgnoreUpDnLimit;
+	AtsSpread["Speed"] = task_data.AtsSpread.Speed;
+	AtsSpread["SpeedConvergeRate"] = task_data.AtsSpread.SpeedConvergeRate;
+	AtsSpread["LastSpread"] = task_data.AtsSpread.LastSpread;
+	AtsSpread["Volatility"] = task_data.AtsSpread.Volatility;
+	AtsSpread["MaxVolRange"] = task_data.AtsSpread.MaxVolRange;
+	AtsSpread["RiskDegree"] = task_data.AtsSpread.RiskDegree;
+	AtsSpread["Fut2Cancel"] = task_data.AtsSpread.Fut2Cancel;
+	AtsSpread["FastConvergeRate"] = task_data.AtsSpread.FastConvergeRate;
+	data["AtsSpread"] = AtsSpread;
+}
+
+void create_TrdInstrumentMsg(CTAMsg::IAFutureMsg &task_data, boost::python::list &data)
+{
+	dict trd;
+	trd["AtsName"] = task_data.AtsName;
+	trd["isTrdFuture"] = task_data.isTrdFuture;
+	trd["isFuture1"] = task_data.isFuture1;
+	trd["isFuture2"] = task_data.isFuture2;
+	trd["Maturity"] = task_data.Maturity;
+
+	dict atsinstr;
+	{
+		atsinstr["Code"] = task_data.AtsInstrument.Code;
+		atsinstr["ExchangeFees"] = task_data.AtsInstrument.ExchangeFees;
+		atsinstr["BrokerFees"] = task_data.AtsInstrument.BrokerFees;
+		atsinstr["YesterdayPnlBarycenter"] = task_data.AtsInstrument.YesterdayPnlBarycenter;
+		atsinstr["TodayPnlBarycenter"] = task_data.AtsInstrument.TodayPnlBarycenter;
+		atsinstr["SizeToSend"] = task_data.AtsInstrument.SizeToSend;
+		atsinstr["InstrumentClassName"] = task_data.AtsInstrument.InstrumentClassName;
+
+		{
+			dict positon;
+			positon["Instrument"] = task_data.AtsInstrument.Position.Instrument;
+			positon["Portfolio"] = task_data.AtsInstrument.Position.Portfolio;
+			positon["YesterdayPosition"] = task_data.AtsInstrument.Position.YesterdayPosition;
+			positon["TodayPosition"] = task_data.AtsInstrument.Position.TodayPosition;
+			positon["TotalPosition"] = task_data.AtsInstrument.Position.TotalPosition;
+
+			positon["TodayBuyPosition"] = task_data.AtsInstrument.Position.TodayBuyPosition;
+			positon["TodayBuyPrice"] = task_data.AtsInstrument.Position.TodayBuyPrice;
+			positon["TodaySellPosition"] = task_data.AtsInstrument.Position.TodaySellPosition;
+			positon["TodaySellPrice"] = task_data.AtsInstrument.Position.TodaySellPrice;
+			positon["YesterdayPrice"] = task_data.AtsInstrument.Position.YesterdayPrice;
+
+			positon["YesterdayPriceLocal"] = task_data.AtsInstrument.Position.YesterdayPriceLocal;
+			positon["YesterdayPriceExternal"] = task_data.AtsInstrument.Position.YesterdayPriceExternal;
+			positon["YesterdayPositionLocal"] = task_data.AtsInstrument.Position.YesterdayPositionLocal;
+			positon["YesterdayPositionManual"] = task_data.AtsInstrument.Position.YesterdayPositionManual;
+			positon["YesterdayPositionExternal"] = task_data.AtsInstrument.Position.YesterdayPositionExternal;
+
+			positon["UseManualPosition"] = task_data.AtsInstrument.Position.UseManualPosition;
+			positon["YstPositionType"] = (int)task_data.AtsInstrument.Position.YstPositionType;
+			positon["YstPriceType"] = (int)task_data.AtsInstrument.Position.YstPriceType;
+			positon["Connection"] = task_data.AtsInstrument.Position.Connection;
+			positon["TodayPurPosition"] = task_data.AtsInstrument.Position.TodayPurPosition;
+
+			positon["TodayRedPosition"] = task_data.AtsInstrument.Position.TodayRedPosition;
+
+			atsinstr["Position"] = positon;
+		}
+
+		{
+			dict FeedItem;
+			boost::python::list BidDepths, AskDepths, BidQtys, AskQtys;
+			FeedItem["Code"] = task_data.AtsInstrument.FeedItem.Code;
+			FeedItem["FeedSourceName"] = task_data.AtsInstrument.FeedItem.FeedSourceName;
+			FeedItem["Bid"] = task_data.AtsInstrument.FeedItem.Bid;
+			FeedItem["Ask"] = task_data.AtsInstrument.FeedItem.Ask;
+			FeedItem["BidQuantity"] = task_data.AtsInstrument.FeedItem.BidQuantity;
+
+			FeedItem["AskQuantity"] = task_data.AtsInstrument.FeedItem.AskQuantity;
+			FeedItem["Last"] = task_data.AtsInstrument.FeedItem.Last;
+			FeedItem["LastQuantity"] = task_data.AtsInstrument.FeedItem.LastQuantity;
+			FeedItem["LastOrClose"] = task_data.AtsInstrument.FeedItem.LastOrClose;
+			FeedItem["Mid"] = task_data.AtsInstrument.FeedItem.Mid;
+
+			FeedItem["Close"] = task_data.AtsInstrument.FeedItem.Close;
+			FeedItem["Settlement"] = task_data.AtsInstrument.FeedItem.Settlement;
+			FeedItem["UpperLimit"] = task_data.AtsInstrument.FeedItem.UpperLimit;
+			FeedItem["LowerLimit"] = task_data.AtsInstrument.FeedItem.LowerLimit;
+			FeedItem["Perf"] = task_data.AtsInstrument.FeedItem.Perf;
+
+			FeedItem["DailyVolume"] = task_data.AtsInstrument.FeedItem.DailyVolume;
+			FeedItem["isBiddAskActive"] = task_data.AtsInstrument.FeedItem.isBiddAskActive;
+			FeedItem["isSuspended"] = task_data.AtsInstrument.FeedItem.isSuspended;
+			FeedItem["MaxDepth"] = task_data.AtsInstrument.FeedItem.MaxDepth;
+
+			for (auto &it : task_data.AtsInstrument.FeedItem.AskDepths)
+			{
+				AskDepths.append(it);
+			}
+			for (auto &it : task_data.AtsInstrument.FeedItem.BidDepths)
+			{
+				BidDepths.append(it);
+			}
+			for (auto &it : task_data.AtsInstrument.FeedItem.AskQtys)
+			{
+				AskQtys.append(it);
+			}
+			for (auto &it : task_data.AtsInstrument.FeedItem.BidQtys)
+			{
+				BidQtys.append(it);
+			}
+
+			FeedItem["AskDepths"] = AskDepths;
+			FeedItem["BidDepths"] = BidDepths;
+			FeedItem["AskQtys"] = AskQtys;
+			FeedItem["BidQtys"] = BidQtys;
+			atsinstr["FeedItem"] = FeedItem;
+		}
+	}
+	trd["AtsInstrument"] = atsinstr;
+
+	data.append(trd);
+}
 
 void CTA_Client_API::process_CTAAtsMsg(Task task)
 {
 	PyLock lock;
 	dict data;
-	boost::python::list fut, opt;
+	boost::python::list fut;
 
 	CTAMsg::CTAAtsMsg task_data = any_cast<CTAMsg::CTAAtsMsg>(task.task_data);
 	data["KeepOrders"] = task_data.KeepOrders;
@@ -458,7 +517,8 @@ void CTA_Client_API::process_CTAAtsMsg(Task task)
 	data["FeedsourcesStr"] = task_data.FeedsourcesStr;
 	data["ConnectionsStr"] = task_data.ConnectionsStr;
 
-	/*create_AtsMsg(task_data, data);
+	create_CTAAtsMsg(task_data, data);
+	create_AtsSpreadMsg(task_data, data);
 
 	for (auto &it : task_data.AllFutures)
 	{
@@ -466,12 +526,7 @@ void CTA_Client_API::process_CTAAtsMsg(Task task)
 	}
 	data["AllFutures"] = fut;
 
-	for (auto &it : task_data.AllOptions)
-	{
-		create_TrdInstrumentMsg(it, opt);
-	}
-	data["AllOptions"] = opt;*/
-
+	
 	this->onRtn_CTAAtsMsg(data);
 
 }
