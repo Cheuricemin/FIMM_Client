@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.40629.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Simple_Client_Python_Wrap", "..\sim_client_python_wrap\Simple_Client_Python_Wrap\Simple_Client_Python_Wrap.vcxproj", "{335C1AF6-F78B-4034-8ED9-FCCA9B50D571}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "base_network", "..\..\base_network\projects\base_network.vcxproj", "{1B4A5481-0882-47D6-8F61-EFBF51FAC1D0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sim_msg_network", "..\sim_msg_network\projects\sim_qt_network.vcxproj", "{F9824E5F-C48A-4FC8-9410-A0D3B400844B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{335C1AF6-F78B-4034-8ED9-FCCA9B50D571}.Debug|Win32.ActiveCfg = Debug|Win32
+		{335C1AF6-F78B-4034-8ED9-FCCA9B50D571}.Debug|Win32.Build.0 = Debug|Win32
+		{335C1AF6-F78B-4034-8ED9-FCCA9B50D571}.Debug|x64.ActiveCfg = Debug|Win32
+		{335C1AF6-F78B-4034-8ED9-FCCA9B50D571}.Release|Win32.ActiveCfg = Release|Win32
+		{335C1AF6-F78B-4034-8ED9-FCCA9B50D571}.Release|Win32.Build.0 = Release|Win32
+		{335C1AF6-F78B-4034-8ED9-FCCA9B50D571}.Release|x64.ActiveCfg = Release|Win32
+		{1B4A5481-0882-47D6-8F61-EFBF51FAC1D0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1B4A5481-0882-47D6-8F61-EFBF51FAC1D0}.Debug|Win32.Build.0 = Debug|Win32
+		{1B4A5481-0882-47D6-8F61-EFBF51FAC1D0}.Debug|x64.ActiveCfg = Debug|Win32
+		{1B4A5481-0882-47D6-8F61-EFBF51FAC1D0}.Release|Win32.ActiveCfg = Release|Win32
+		{1B4A5481-0882-47D6-8F61-EFBF51FAC1D0}.Release|Win32.Build.0 = Release|Win32
+		{1B4A5481-0882-47D6-8F61-EFBF51FAC1D0}.Release|x64.ActiveCfg = Release|Win32
+		{F9824E5F-C48A-4FC8-9410-A0D3B400844B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F9824E5F-C48A-4FC8-9410-A0D3B400844B}.Debug|Win32.Build.0 = Debug|Win32
+		{F9824E5F-C48A-4FC8-9410-A0D3B400844B}.Debug|x64.ActiveCfg = Debug|Win32
+		{F9824E5F-C48A-4FC8-9410-A0D3B400844B}.Release|Win32.ActiveCfg = Release|Win32
+		{F9824E5F-C48A-4FC8-9410-A0D3B400844B}.Release|Win32.Build.0 = Release|Win32
+		{F9824E5F-C48A-4FC8-9410-A0D3B400844B}.Release|x64.ActiveCfg = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
